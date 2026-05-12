@@ -1,0 +1,6 @@
+interface:
+  display_name: "Zotero Literature Classifier"
+  short_description: "Classify Zotero papers for reviews."
+  default_prompt: "Use $zotero-literature-classifier to classify the papers in my selected Zotero topic collection into review-suitable and question-focused categories."
+policy:
+  allow_implicit_invocation: true

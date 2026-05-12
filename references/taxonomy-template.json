@@ -1,0 +1,76 @@
+{
+  "topic": "替换为 Zotero 中已经手动整理好的大类集合名称",
+  "scope_note": "用一句话说明这个综述主题的纳入范围和排除范围。",
+  "review_roles": [
+    {
+      "id": "core-review",
+      "label_zh": "核心综述",
+      "description": "与主题高度相关的系统综述、Meta分析、范围综述、权威叙述综述、指南或共识。"
+    },
+    {
+      "id": "background-review",
+      "label_zh": "背景",
+      "description": "用于引言和讨论背景铺垫的宽泛综述、相邻领域综述或较早综述。"
+    },
+    {
+      "id": "primary-study",
+      "label_zh": "原始研究",
+      "description": "报告实验、队列、临床试验、计算分析、调查或机制研究的原创论文。"
+    },
+    {
+      "id": "methods",
+      "label_zh": "方法",
+      "description": "方法、流程、算法、协议、检测技术、统计框架或分析工具。"
+    },
+    {
+      "id": "dataset-resource",
+      "label_zh": "数据资源",
+      "description": "数据库、数据集、图谱、资源库、基准数据或可复用材料。"
+    },
+    {
+      "id": "opinion-editorial",
+      "label_zh": "观点评论",
+      "description": "评论、观点、社论、perspective 或非系统性立场文章。"
+    },
+    {
+      "id": "exclude",
+      "label_zh": "排除",
+      "description": "不在综述范围、重复、撤稿、非学术内容或元数据不足且无法判断的条目。"
+    }
+  ],
+  "question_categories": [
+    {
+      "id": "q1-mechanism",
+      "label": "机制与概念模型",
+      "description": "解释机制、通路、因果过程、概念框架或生物学/技术原理的文献。",
+      "keywords": ["mechanism", "pathway", "model", "causal", "regulation", "机制", "通路", "模型", "调控"],
+      "exclude_keywords": []
+    },
+    {
+      "id": "q2-evidence",
+      "label": "实证证据与结局",
+      "description": "原始证据、实验结果、队列/试验、结局指标、性能评估或临床/生物学读出。",
+      "keywords": ["cohort", "trial", "experiment", "outcome", "benchmark", "performance", "队列", "试验", "实验", "结局", "性能"],
+      "exclude_keywords": []
+    },
+    {
+      "id": "q3-methods",
+      "label": "方法、工具与资源",
+      "description": "方法、协议、数据库、算法、检测技术、软件流程或可复用资源。",
+      "keywords": ["method", "protocol", "database", "pipeline", "algorithm", "tool", "方法", "协议", "数据库", "算法", "工具"],
+      "exclude_keywords": []
+    },
+    {
+      "id": "q4-gaps",
+      "label": "争议、局限与空白",
+      "description": "指出争议、不一致、局限性、开放问题或未来方向的文献。",
+      "keywords": ["controversy", "limitation", "challenge", "gap", "future direction", "争议", "局限", "挑战", "空白", "未来方向"],
+      "exclude_keywords": []
+    }
+  ],
+  "zotero_write_plan": {
+    "mode": "tags-and-collections",
+    "tag_prefix": "review:",
+    "collection_prefix": "综述分类/"
+  }
+}
