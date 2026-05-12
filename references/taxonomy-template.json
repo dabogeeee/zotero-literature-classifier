@@ -69,8 +69,7 @@
     }
   ],
   "zotero_write_plan": {
-    "mode": "tags-and-collections",
-    "tag_prefix": "review:",
+    "mode": "collections-only",
     "collection_prefix": "综述分类/"
   }
 }
