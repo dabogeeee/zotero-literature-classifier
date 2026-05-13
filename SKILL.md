@@ -5,7 +5,7 @@ description: Batch-classify papers in a local Zotero library after broad topic c
 
 # Zotero Literature Classifier
 
-Use this skill to batch-classify an already-curated Zotero topic collection into review-ready Chinese subcollections. The goal is to divide a broad topic collection into finer problem-oriented categories, not to tag items or rank journals.
+Use this skill to batch-classify an already-curated Zotero topic collection into review-ready Chinese subcollections. The goal is to divide a broad topic collection into finer problem-oriented categories, not to tag items or rank journals. Use a two-pass strategy: first classify all items from title and abstract, then refine ambiguous or important items with Zotero full-text/PDF index content when available.
 
 Rely on the existing Zotero skill for connection checks and general Zotero context. This skill governs the batch export, classification plan, and collection-only write-back workflow.
 
@@ -18,18 +18,19 @@ Rely on the existing Zotero skill for connection checks and general Zotero conte
    - If they only give a broad topic, draft a Chinese taxonomy and ask for confirmation before writing back.
    - For a reusable JSON format, read `references/taxonomy-template.json`.
 4. Batch-export the whole target collection with `scripts/export_collection_items.py`.
-5. Classify each item:
+5. First pass: classify each item from title, abstract, item type, existing Zotero tags, and notes:
    - Assign `review_role`: `core-review`, `background-review`, `primary-study`, `methods`, `dataset-resource`, `opinion-editorial`, or `exclude`.
    - Assign one or more `question_categories` from the confirmed taxonomy.
    - Add `confidence`: `high`, `medium`, or `low`.
    - Record `rationale` with short evidence from title/abstract/tags/notes.
    - Mark `needs_manual_review` when evidence is sparse, categories conflict, or the item appears important but ambiguous.
-6. Produce a dry-run preview before Zotero write-back:
+6. Second pass: use `scripts/refine_plan_with_fulltext.py` for low-confidence, manual-review, or user-selected key items. It fetches Zotero attachment children and reads indexed full-text content when available, then updates categories, confidence, and rationale.
+7. Produce a dry-run preview before Zotero write-back:
    - Counts by category and review role.
    - High-confidence placements.
    - Low-confidence or uncategorized items.
    - Proposed Chinese collection paths.
-7. Write back to Zotero only after explicit confirmation. Write-back creates/uses collections and adds items to all matching collections. It must not add or modify item tags.
+8. Write back to Zotero only after explicit confirmation. Write-back creates/uses collections and adds items to all matching collections. It must not add or modify item tags.
 
 ## Classification Heuristics
 
@@ -57,16 +58,16 @@ For review writing, avoid categories that merely repeat keywords. Prefer categor
 
 Keep categories mutually understandable but allow multi-label assignment. A paper may support more than one subquestion, so it can be placed in multiple Zotero subcollections.
 
-## Scripts
+## Two-Pass Scripts
 
-Batch-export a Zotero broad-topic collection first. Use collection name when it is unique, or collection key when names are duplicated:
+First export a Zotero broad-topic collection. Use collection name when it is unique, or collection key when names are duplicated:
 
 ```bash
 python scripts/export_collection_items.py --library user:20019824 --collection-name "大类集合名称" --out items.json
 python scripts/export_collection_items.py --library user:20019824 --collection-key ABCD1234 --out items.json
 ```
 
-Generate the classification plan:
+First pass: generate the classification plan from metadata:
 
 ```bash
 python scripts/classify_plan.py --items items.json --taxonomy taxonomy.json --out classification-plan.json
@@ -74,21 +75,31 @@ python scripts/classify_plan.py --items items.json --taxonomy taxonomy.json --ou
 
 Expected item JSON may be either the wrapper produced by `export_collection_items.py`, Zotero API-style objects with a `data` field, or flat objects containing `key`, `title`, `abstractNote`, `itemType`, `tags`, and `notes`.
 
+Second pass: refine selected items with Zotero indexed full text. This reads attachment children and calls Zotero's full-text endpoint for attachment items when available. It does not download PDFs directly and does not modify Zotero.
+
+```bash
+python scripts/refine_plan_with_fulltext.py --plan classification-plan.json --taxonomy taxonomy.json --library user:20019824 --out refined-classification-plan.json
+```
+
+Default refinement targets are items with `confidence: low` or `needs_manual_review: true`. Add `--include-core-review` to also refine candidate core reviews, or `--item-key ABCD1234 --item-key EFGH5678` to refine specific Zotero item keys.
+
+Use `--max-fulltext-chars` to control how much indexed text is used per item. If no indexed full text is found, the item remains in the plan and records `fulltext_status: not-found`.
+
 ## Collection-Only Zotero Write-Back
 
-Use `scripts/apply_to_zotero.py` only after the user approves the classification plan. This script writes through the Zotero Web API, not the read-only local API. It requires a Zotero API key with write permission and the target library id.
+Use `scripts/apply_to_zotero.py` only after the user approves the refined classification plan. This script writes through the Zotero Web API, not the read-only local API. It requires a Zotero API key with write permission and the target library id.
 
 Dry run first:
 
 ```bash
-python scripts/apply_to_zotero.py --plan classification-plan.json --library user:20019824 --root-collection "综述分类"
+python scripts/apply_to_zotero.py --plan refined-classification-plan.json --library user:20019824 --root-collection "综述分类"
 ```
 
 Apply after confirmation:
 
 ```bash
 $env:ZOTERO_API_KEY="..."
-python scripts/apply_to_zotero.py --plan classification-plan.json --library user:20019824 --root-collection "综述分类" --apply
+python scripts/apply_to_zotero.py --plan refined-classification-plan.json --library user:20019824 --root-collection "综述分类" --apply
 ```
 
 The script:
@@ -111,6 +122,7 @@ Include:
 - Taxonomy used.
 - Counts by review role and subquestion.
 - Table of proposed classifications with Zotero item key, short title, year, role, category, confidence, and rationale.
+- For second-pass items, report whether full text was found and whether categories changed.
 - Separate list of low-confidence or manual-review items.
 - Exact proposed Chinese collection paths before asking for confirmation.
 
